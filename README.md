@@ -1,8 +1,6 @@
-# VLC for Android
-This is the official **Android** port of [VLC](https://videolan.org/vlc/).
+# VX Media Player
 
-VLC on Android plays all the same files as the classical version of VLC, and features a media database
-for Audio and Video files and stream.
+VX Media Player app is an Ad Supported opensource multimedia player app. VX Media Player™ is uses the source code of VLC media player as the base of this Media Player. VLC Media Player is the popular open source media player. VLC Media Player is build by Videolan (a non-profit organization). Visit Videolan Privacy Policy.The Android™ version can read most files and network streams.
 
 - [Project Structure](#project-structure)
 - [LibVLC](#libvlc)
@@ -18,7 +16,7 @@ for Audio and Video files and stream.
 
 ## Project Structure
 
-Here are the current folders of vlc-android project:
+Here are the current folders of vx-media-player project:
 - extension-api : Application extensions SDK (not released yet)
 - application : Android application source code, organized by modules.
 - buildsystem : Build scripts, CI and maven publication configuration
@@ -48,7 +46,7 @@ Have a look at our  [sample codes](https://code.videolan.org/videolan/libvlc-and
 
 
 ## License
-VLC for Android is licensed under [GPLv2 (or later)](COPYING). Android libraries make this, de facto, a GPLv3 application.
+VX Media Player is licensed under [GPLv2 (or later)](License). Android libraries make this, de facto, a GPLv3 application.
 
 VLC engine *(LibVLC)* for Android is licensed under [LGPLv2](libvlc/COPYING.LIB).
 
@@ -61,7 +59,7 @@ Native libraries are published on bintray. So you can:
 
 ### Build Application
 
-VLC-Android build relies on gradle build modes :
+VX-Media-Player build relies on gradle build modes :
 - `Release` & `Debug` will get LibVLC and Medialibrary from Bintray, and build application source code only.
 - `SignedRelease` also, but it will allow you to sign application apk with a local keystore.
 - `Dev` will build build LibVLC, Medialibrary, and then build the application with these binaries. (via build scripts only)
@@ -73,7 +71,7 @@ It should work with Windows 10, and macOS, but there is no official support for 
 
 #### Setup
 
-Check our [AndroidCompile wiki page](https://wiki.videolan.org/AndroidCompile/), especially for build dependencies.
+Check Videolan [AndroidCompile wiki page](https://wiki.videolan.org/AndroidCompile/), especially for build dependencies.
 
 Here are the essential points:
 
@@ -108,37 +106,20 @@ Build Medialibrary with `-ml` instead of `-l`
 
 ## Contribute
 
-VLC is a libre and open source project, we welcome all contributions.
+VX Media Player is a libre and open source project, we welcome all contributions.
 
 Just respect our [Code of Conduct](https://wiki.videolan.org/CoC/).
 
-### Pull requests
-
-Pull requests must be proposed on our [gitlab server](https://code.videolan.org/videolan/vlc-android/).
-
-So you must create an account, fork vlc-android project, and propose your merge requests from it.
-
-**Exept for translations**, see the section below.
-
 ### Translations
 
-You can help improving translations too by joining the [transifex vlc project](https://www.transifex.com/yaron/vlc-trans/dashboard/)
+You can help improving translations too by joining the [Localzy VX Media Player Project](https://localazy.com/p/vx-media-player)
 
-Translations merge requests are then generated from transifex work.
+Translations merge requests are then generated from localzy work.
 
-## Issues and feature requests
-
-VLC for Android bugtracker is hosted on [VideoLAN gitlab](https://code.videolan.org/videolan/vlc-android/issues)  
-Please look for existing issues and provide as much useful details as you can (e.g. vlc app version, device and Android version).
-
-A template is provided, please use it!
 
 Issues without relevant informations will be ignored, we cannot help in this case.
 
 ## Support
 
-- Android mailing list: android@videolan.org
-- bugtracker: https://code.videolan.org/videolan/vlc-android/issues
-- IRC: *#videolan* channel on [freenode](http://freenode.net/)
-- VideoLAN forum: https://forum.videolan.org/
+- Android mailing list: support@techyinc.tech
 
