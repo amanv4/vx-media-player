@@ -1,0 +1,268 @@
+/*
+ * *************************************************************************
+ *  MediaBrowserFragment.java
+ * **************************************************************************
+ *  Copyright © 2015-2016 VLC authors and VideoLAN
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ *  ***************************************************************************
+ */
+
+package tech.techyinc.vlc.gui.browser
+
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.ChangeBounds
+import androidx.transition.TransitionManager
+import kotlinx.coroutines.*
+import org.videolan.medialibrary.interfaces.Medialibrary
+import org.videolan.medialibrary.interfaces.media.Album
+import org.videolan.medialibrary.interfaces.media.MediaWrapper
+import org.videolan.medialibrary.interfaces.media.Playlist
+import org.videolan.medialibrary.media.MediaLibraryItem
+import tech.techyinc.tools.MultiSelectHelper
+import tech.techyinc.tools.isStarted
+import tech.techyinc.vlc.R
+import tech.techyinc.vlc.gui.BaseFragment
+import tech.techyinc.vlc.gui.dialogs.ConfirmDeleteDialog
+import tech.techyinc.vlc.gui.helpers.UiTools
+import tech.techyinc.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.getWritePermission
+import tech.techyinc.vlc.interfaces.Filterable
+import tech.techyinc.vlc.media.MediaUtils
+import tech.techyinc.vlc.util.Permissions
+import tech.techyinc.vlc.viewmodels.MedialibraryViewModel
+import tech.techyinc.vlc.viewmodels.SortableModel
+import tech.techyinc.vlc.viewmodels.prepareOptionsMenu
+import tech.techyinc.vlc.viewmodels.sortMenuTitles
+import java.lang.Runnable
+
+private const val TAG = "VLC/MediaBrowserFragment"
+private const val KEY_SELECTION = "key_selection"
+
+@ExperimentalCoroutinesApi
+@ObsoleteCoroutinesApi
+abstract class MediaBrowserFragment<T : SortableModel> : BaseFragment(), Filterable {
+
+    private lateinit var searchButtonView: View
+    lateinit var mediaLibrary: Medialibrary
+    private var savedSelection = ArrayList<Int>()
+    private val transition = ChangeBounds().apply {
+        interpolator = AccelerateDecelerateInterpolator()
+        duration = 300
+    }
+
+    open lateinit var viewModel: T
+        protected set
+
+    abstract fun getMultiHelper(): MultiSelectHelper<T>?
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mediaLibrary = Medialibrary.getInstance()
+        (savedInstanceState?.getIntegerArrayList(KEY_SELECTION))?.let { savedSelection = it }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        searchButtonView = view.findViewById(R.id.searchButton)
+    }
+
+    protected open fun setBreadcrumb() {
+        activity?.findViewById<RecyclerView>(R.id.ariane)?.visibility = View.GONE
+    }
+
+    private fun releaseBreadCrumb() {
+        activity?.findViewById<RecyclerView>(R.id.ariane)?.adapter = null
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setBreadcrumb()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        releaseBreadCrumb()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        savedSelection.clear()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        getMultiHelper()?.let {
+            outState.putIntegerArrayList(KEY_SELECTION, it.selectionMap)
+        }
+        super.onSaveInstanceState(outState)
+    }
+
+    abstract fun onRefresh()
+    open fun clear() {}
+
+    protected open fun removeItems(items: List<MediaLibraryItem>) {
+        if (items.size == 1) {
+            removeItem(items[0])
+            return
+        }
+        val dialog = ConfirmDeleteDialog.newInstance(ArrayList(items))
+        dialog.show(requireActivity().supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
+        dialog.setListener {
+            lifecycleScope.launch {
+                for (item in items) {
+                    if (!isStarted()) break
+                    when(item) {
+                        is MediaWrapper -> if (getWritePermission(item.uri)) MediaUtils.deleteMedia(item)
+                        is Playlist -> withContext(Dispatchers.IO) { item.delete() }
+                    }
+                }
+            }
+        }
+    }
+
+    protected open fun removeItem(item: MediaLibraryItem): Boolean {
+        val deletionAction = when (item) {
+            is Playlist -> Runnable {
+                MediaUtils.deletePlaylist(item)
+                    }
+            is MediaWrapper-> Runnable {
+                    if (isStarted()) lifecycleScope.launch {
+                        if (!MediaUtils.deleteMedia(item, null)) onDeleteFailed(item)
+                    }
+                }
+
+            is Album -> Runnable {
+                    if (isStarted()) lifecycleScope.launch {
+                        if (!MediaUtils.deleteMedia(item, null)) onDeleteFailed(item)
+                    }
+                }
+            else -> return false
+        }
+        val dialog = ConfirmDeleteDialog.newInstance(arrayListOf(item))
+        dialog.show(requireActivity().supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
+        dialog.setListener {
+            if (item is MediaWrapper) if (Permissions.checkWritePermission(requireActivity(), item, deletionAction)) deletionAction.run() else deletionAction.run()
+            else deletionAction.run()
+        }
+        return true
+    }
+
+    private fun onDeleteFailed(item: MediaLibraryItem) {
+        if (isAdded) UiTools.snacker(requireActivity(), getString(R.string.msg_delete_failed, item.title))
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        (viewModel as? MedialibraryViewModel)?.prepareOptionsMenu(menu)
+        sortMenuTitles()
+    }
+
+    open fun sortMenuTitles(index : Int = 0) {
+        menu?.let { (viewModel as? MedialibraryViewModel)?.sortMenuTitles(it, index) }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.ml_menu_sortby_name -> {
+                sortBy(Medialibrary.SORT_ALPHA)
+                return true
+            }
+            R.id.ml_menu_sortby_filename -> {
+                sortBy(Medialibrary.SORT_FILENAME)
+                return true
+            }
+            R.id.ml_menu_sortby_length -> {
+                sortBy(Medialibrary.SORT_DURATION)
+                return true
+            }
+            R.id.ml_menu_sortby_date -> {
+                sortBy(Medialibrary.SORT_RELEASEDATE)
+                return true
+            }
+            R.id.ml_menu_sortby_last_modified -> {
+                sortBy(Medialibrary.SORT_LASTMODIFICATIONDATE)
+                return true
+            }
+            R.id.ml_menu_sortby_artist_name -> {
+                sortBy(Medialibrary.SORT_ARTIST)
+                return true
+            }
+            R.id.ml_menu_sortby_album_name -> {
+                sortBy(Medialibrary.SORT_ALBUM)
+                return true
+            }
+            R.id.ml_menu_sortby_media_number -> {
+                sortBy(Medialibrary.NbMedia)
+                return true
+            }
+            R.id.ml_menu_sortby_number -> {
+                sortBy(Medialibrary.SORT_FILESIZE) //TODO
+                return super.onOptionsItemSelected(item)
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    protected open fun sortBy(sort: Int) {
+        viewModel.sort(sort)
+    }
+
+    fun restoreMultiSelectHelper() {
+        getMultiHelper()?.let {
+
+            if (savedSelection.size > 0) {
+                var hasOneSelected = false
+                for (i in 0 until savedSelection.size) {
+
+                    it.selectionMap.addAll(savedSelection)
+                    hasOneSelected = savedSelection.isNotEmpty()
+                }
+                if (hasOneSelected) startActionMode()
+                savedSelection.clear()
+            }
+        }
+    }
+
+    override fun filter(query: String) = viewModel.filter(query)
+
+    override fun restoreList() = viewModel.restore()
+
+    override fun enableSearchOption() = true
+
+    override fun getFilterQuery() = viewModel.filterQuery
+
+    override fun setSearchVisibility(visible: Boolean) {
+        if (searchButtonView.visibility == View.VISIBLE == visible) return
+        if (searchButtonView.parent is ConstraintLayout) {
+            val cl = searchButtonView.parent as ConstraintLayout
+            val cs = ConstraintSet()
+            cs.clone(cl)
+            cs.setVisibility(R.id.searchButton, if (visible) ConstraintSet.VISIBLE else ConstraintSet.GONE)
+            transition.excludeChildren(RecyclerView::class.java, true)
+            TransitionManager.beginDelayedTransition(cl, transition)
+            cs.applyTo(cl)
+        } else
+            searchButtonView.visibility = if (visible) View.VISIBLE else View.GONE
+    }
+
+    override fun allowedToExpand() = true
+}
