@@ -244,19 +244,11 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
         favoritesEntry.displayInCards = !displayInList
         networkEntry.displayInCards = !displayInList
 
-        VLCBilling.getInstance(requireActivity().application).addStatusListener {
-            manageAdsVisibility()
-        }
-        manageAdsVisibility()
+        adsLoader()
     }
 
-    private fun manageAdsVisibility() {
-        if (activity == null) return
-        if (VLCBilling.getInstance(requireActivity().application).status == BillingStatus.FAILURE || VLCBilling.getInstance(requireActivity().application).status != BillingStatus.SKU_RETRIEVED ||  VLCBilling.getInstance(requireActivity().application).skuDetails.isEmpty()) adsLoader() else ads_more2.setGone()
-    }
-
+  
     private fun adsLoader(){
-        ads_more2.setVisible()
         val adRequest = AdRequest.Builder().build()
         mAdView.loadAd(adRequest)
     }

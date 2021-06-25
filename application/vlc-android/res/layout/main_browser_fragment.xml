@@ -49,8 +49,7 @@
             android:layout_height="match_parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/local_browser_entry"
-            android:padding="8dp"
-            android:visibility="gone">
+            android:padding="8dp">
 
             <include layout="@layout/ads_wrapper"/>
         </androidx.constraintlayout.widget.ConstraintLayout>

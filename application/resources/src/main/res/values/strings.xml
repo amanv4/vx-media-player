@@ -20,6 +20,7 @@
     <string name="history">History</string>
 
     <plurals name="search_found_results_quantity">
+    <plurals name="search_found_results_quantity">
         <item quantity="one">%d result found</item>
         <item quantity="other">%d results found</item>
     </plurals>
@@ -758,7 +759,7 @@
     <string name="sub_result_by_name_episode">Episode %s</string>
 
     <string name="sub_result_by_file">Results for your file</string>
-    <string name="donate" translatable="false">Help VX &amp; Remove Ads</string>
+    <string name="donate" translatable="false">Help VX Media Player</string>
     <string name="donate_desc">Support the volunteers building VX</string>
     <string name="donate_subscribtion">I would like this to be a monthly sponsorship</string>
     <string name="donate_send">Start your sponsorship</string>

@@ -202,9 +202,9 @@ class MoreFragment : BaseFragment(), IRefreshable, IHistory, IDialogManager,
 
         VLCBilling.getInstance(requireActivity().application).addStatusListener {
             manageDonationVisibility()
-            manageAdsVisibility()
         }
-        manageAdsVisibility()
+		
+		adsLoader()
         manageDonationVisibility()
         donationsButton.setOnClickListener {
             requireActivity().showDonations()
@@ -217,12 +217,8 @@ class MoreFragment : BaseFragment(), IRefreshable, IHistory, IDialogManager,
         if (VLCBilling.getInstance(requireActivity().application).status == BillingStatus.FAILURE ||  VLCBilling.getInstance(requireActivity().application).skuDetails.isEmpty()) donationsButton.setGone() else donationsButton.setVisible()
     }
 
-    private fun manageAdsVisibility() {
-        if (activity == null) return
-        if (VLCBilling.getInstance(requireActivity().application).status == BillingStatus.FAILURE || VLCBilling.getInstance(requireActivity().application).status != BillingStatus.SKU_RETRIEVED ||  VLCBilling.getInstance(requireActivity().application).skuDetails.isEmpty()) adsLoader() else ads_more.setGone()
-    }
+   
     private fun adsLoader(){
-        ads_more.setVisible()
         val adRequest = AdRequest.Builder().build()
         mAdView.loadAd(adRequest)
     }
