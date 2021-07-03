@@ -67,6 +67,6 @@
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@+id/nav_header_logo"
             app:layout_constraintStart_toEndOf="@+id/nav_header_logo"
-            tools:text="VLC 3.3" />
+            tools:text="VX 1.1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

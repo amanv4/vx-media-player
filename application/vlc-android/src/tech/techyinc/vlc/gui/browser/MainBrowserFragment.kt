@@ -247,7 +247,7 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
         adsLoader()
     }
 
-  
+
     private fun adsLoader(){
         val adRequest = AdRequest.Builder().build()
         mAdView.loadAd(adRequest)

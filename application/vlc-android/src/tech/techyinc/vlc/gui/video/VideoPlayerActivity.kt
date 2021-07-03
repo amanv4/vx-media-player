@@ -100,6 +100,7 @@ import tech.techyinc.vlc.gui.helpers.PlayerOptionsDelegate
 import tech.techyinc.vlc.gui.helpers.UiTools
 import tech.techyinc.vlc.gui.helpers.hf.StoragePermissionsDelegate
 import tech.techyinc.vlc.interfaces.IPlaybackSettingsController
+import tech.techyinc.vlc.media.NO_LENGTH_PROGRESS_MAX
 import tech.techyinc.vlc.repository.ExternalSubRepository
 import tech.techyinc.vlc.repository.SlaveRepository
 import tech.techyinc.vlc.util.*
@@ -405,10 +406,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         overlayDelegate.playerUiContainer = findViewById(R.id.player_ui_container)
 
         val screenOrientationSetting = Integer.valueOf(settings.getString(SCREEN_ORIENTATION, "99" /*SCREEN ORIENTATION SENSOR*/)!!)
+        val sensor = settings.getBoolean(LOCK_USE_SENSOR, true)
         orientationMode = when (screenOrientationSetting) {
             99 -> PlayerOrientationMode(false)
-            101 -> PlayerOrientationMode(true, ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
-            102 -> PlayerOrientationMode(true, ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT)
+            101 -> PlayerOrientationMode(true, if (sensor) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
+            102 -> PlayerOrientationMode(true, if (sensor) ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
             103 -> PlayerOrientationMode(true, ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE)
             98 -> PlayerOrientationMode(true, settings.getInt(LAST_LOCK_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE))
             else -> PlayerOrientationMode(true, getOrientationForLock())
@@ -434,6 +436,12 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         // 100 is the value for screen_orientation_start_lock
         try {
             requestedOrientation = getScreenOrientation(orientationMode)
+            //as there is no ActivityInfo.SCREEN_ORIENTATION_SENSOR_REVERSE_LANDSCAPE, now that we are in reverse landscape, enable the sensor if needed
+            if (screenOrientationSetting == 103 && sensor){
+                orientationMode = PlayerOrientationMode(true,ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+                requestedOrientation = getScreenOrientation(orientationMode)
+            }
+
             if (orientationMode.locked) settings.putSingle(LAST_LOCK_ORIENTATION, requestedOrientation)
         } catch (ignored: IllegalStateException) {
             Log.w(TAG, "onCreate: failed to set orientation")
@@ -2161,5 +2169,5 @@ fun setConstraintPercent(view: Guideline, percent: Float) {
 
 @BindingAdapter("mediamax")
 fun setProgressMax(view: SeekBar, length: Long) {
-    view.max = length.toInt()
+    view.max =  if (length == 0L) NO_LENGTH_PROGRESS_MAX else length.toInt()
 }

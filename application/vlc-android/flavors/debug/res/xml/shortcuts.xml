@@ -10,7 +10,7 @@
             android:shortcutLongLabel="@string/resume_playback_long_title">
         <intent
             android:action="vlc.shortcut.resume"
-            android:targetPackage="tech.techyinc.vlc.debug"
+            android:targetPackage="tech.techyinc.vmp.debug"
             android:targetClass="tech.techyinc.vlc.StartActivity" />
         <categories android:name="vlc.shortcut.category" />
     </shortcut>
@@ -22,7 +22,7 @@
         android:shortcutLongLabel="@string/playlists">
         <intent
             android:action="vlc.shortcut.playlists"
-            android:targetPackage="tech.techyinc.vlc.debug"
+            android:targetPackage="tech.techyinc.vmp.debug"
             android:targetClass="tech.techyinc.vlc.StartActivity" />
         <categories android:name="vlc.shortcut.category" />
     </shortcut>
@@ -34,7 +34,7 @@
         android:shortcutLongLabel="@string/directories" >
         <intent
             android:action="vlc.shortcut.browser"
-            android:targetPackage="tech.techyinc.vlc.debug"
+            android:targetPackage="tech.techyinc.vmp.debug"
             android:targetClass="tech.techyinc.vlc.StartActivity" />
         <categories android:name="vlc.shortcut.category" />
     </shortcut>
@@ -47,7 +47,7 @@
         tools:targetApi="n_mr1">
         <intent
             android:action="vlc.shortcut.video"
-            android:targetPackage="tech.techyinc.vlc.debug"
+            android:targetPackage="tech.techyinc.vmp.debug"
             android:targetClass="tech.techyinc.vlc.StartActivity" />
         <categories android:name="vlc.shortcut.category" />
     </shortcut>
@@ -59,7 +59,7 @@
         android:shortcutLongLabel="@string/audio">
         <intent
             android:action="vlc.shortcut.audio"
-            android:targetPackage="tech.techyinc.vlc.debug"
+            android:targetPackage="tech.techyinc.vmp.debug"
             android:targetClass="tech.techyinc.vlc.StartActivity" />
         <categories android:name="vlc.shortcut.category" />
     </shortcut>
@@ -71,7 +71,7 @@
         android:shortcutLongLabel="@string/network_browsing" >
         <intent
             android:action="vlc.shortcut.network"
-            android:targetPackage="tech.techyinc.vlc.debug"
+            android:targetPackage="tech.techyinc.vmp.debug"
             android:targetClass="tech.techyinc.vlc.StartActivity" />
         <categories android:name="vlc.shortcut.category" />
     </shortcut>
